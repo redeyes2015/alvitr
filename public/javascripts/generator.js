@@ -17,16 +17,11 @@
   var Generator = {
     init: function() {
       $('form').change(function() {
-        console.log($('form').serializeObject());
-        $.post('/form', $('form').serializeObject(),
-          function(result){
-            console.log(result);
-            $('#previewImage').prop('src', '/state.png?' + new Date().getTime());
-      
-          });
-      });
-
-      $('form').submit(function(evt) {
+        var params = $(this).serializeObject();
+        //console.log(params);
+        $('#previewImage').attr('src', '/img?' + $.param({q: JSON.stringify(params), _: $.now}));
+      }).
+      submit(function(evt) {
         evt.preventDefault();
       });
     }
