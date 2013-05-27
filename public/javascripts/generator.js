@@ -27,5 +27,8 @@
     }
   };
 
-  Generator.init();
+  $(function(){
+    Generator.init();
+    $('form').triggerHandler('change');
+  });
 }(this));
