@@ -32,7 +32,7 @@
 			MID = '0' + MID;
 		}
 
-		return imageGetter('/images/' + MID + 'i.png');
+		return imageGetter('images/' + MID + 'i.png');
 	};
 
 	var getIconAndDraw = function(id, canvas_ctx, x, y, rate) {
@@ -59,7 +59,7 @@
 		canvas.setAttribute('width', w);
 		canvas.setAttribute('height', h);
 
-		BackgroundGetter('/images/ws.png').then(function(bg_img) {
+		BackgroundGetter('images/ws.png').then(function(bg_img) {
 			ctx.drawImage(bg_img, 0, 150, w, h, 0, 0, w, h);
 
 			var lingrad = ctx.createLinearGradient(0, 0, 0, h);
