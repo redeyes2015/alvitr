@@ -10,5 +10,9 @@
     "ejs": "*",
     "q": "*",
     "canvas": "*"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-express": "~0.3.6"
   }
 }
