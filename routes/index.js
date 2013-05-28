@@ -8,20 +8,27 @@ var Q = require('q')
   , fs = require('fs')
   , Canvas = require('canvas');
 
-var BackgroundGetter = function(src) {
+var imageGetter = function(src){
   var deferred = Q.defer();
   fs.readFile(src, function(err, data) {  
     if (err) {
       deferred.reject();
     } else {
-      deferred.resolve(data);
+	  var img;
+	  img = new Canvas.Image();
+	  img.src = data;
+	  console.log('image got: ' + src);
+      deferred.resolve(img);
     }
   });
   return deferred.promise;
 };
 
+var BackgroundGetter = function(src) {
+  return imageGetter(src);
+};
+
 var IconGetter = function(MID) {
-  var deferred = Q.defer();
   MID = '' + MID;
 
   if (MID.length < 2) {
@@ -30,15 +37,7 @@ var IconGetter = function(MID) {
     MID = '0' + MID;
   }
 
-  fs.readFile(__dirname + '/../public/images/' + MID + 'i.png', function(err, data) {  
-    if (err) {
-      deferred.reject();
-    } else {
-      console.log('on getting ', MID, 'success');
-      deferred.resolve(data);
-    }
-  });
-  return deferred.promise;
+  return imageGetter(__dirname + '/../public/images/' + MID + 'i.png');
 };
 
 var getIconAndDraw = function(id, canvas_ctx, x, y, rate) {
@@ -46,9 +45,7 @@ var getIconAndDraw = function(id, canvas_ctx, x, y, rate) {
   if (rate == null) {
     rate = 1;
   }
-  IconGetter(id).then(function(data) {
-    var img = new Canvas.Image(); // Create a new Image
-    img.src = data;
+  IconGetter(id).then(function(img) {
     canvas_ctx.drawImage(img, x, y, img.width * rate, img.height * rate);
     console.log('icon #' + id, ' painted');
     d.resolve();
@@ -69,29 +66,16 @@ function resolve(res, canvas) {
   });
 }
 
-function myparse(str){
-  try {
-    return JSON.parse(str);
-  }
-  catch (e) {
-    console.log('JSON.parse failed: ' + String(str).slice(0, 20));
-  }
-  return {};
-}
-
-function render(req, res) {
+function render(params, cb) {
   var w = 600;
   var h = 100;
 
   var canvas = new Canvas(w, h)
     , ctx = canvas.getContext('2d')
-    , params = myparse(req.query.q)
     , queue = [];
 
-  BackgroundGetter(__dirname + '/../public/images/ws.png').then(function(data) {  
-    var img = new Canvas.Image(); // Create a new Image
-    img.src = data;
-    ctx.drawImage(img, 0, 150, w, h, 0, 0, w, h);
+  BackgroundGetter(__dirname + '/../public/images/ws.png').then(function(bg_img) {
+    ctx.drawImage(bg_img, 0, 150, w, h, 0, 0, w, h);
 
     var lingrad = ctx.createLinearGradient(0, 0, 0, h);
 
@@ -165,18 +149,34 @@ function render(req, res) {
     console.log('queue.length: ', queue.length);
     if (queue.length < 1) {
       console.log('no waiting');
-      resolve(res, canvas);
+	  cb(canvas);
     }
     else {
       console.log('wait for fetching icons', queue.length);
       Q.all(queue).then(function(){
-        resolve(res, canvas);
-      });
+		cb(canvas);
+	  });
     }
   });
 }
 
+function myparse(str){
+  try {
+    return JSON.parse(str);
+  }
+  catch (e) {
+    console.log('JSON.parse failed: ' + String(str).slice(0, 20));
+  }
+  return {};
+}
+
+function generate(req, res){
+  var params = myparse(req.query.q);
+  render(params, function(canvas){
+	resolve(res, canvas);
+  });
+}
 
 module.exports = function(app){
-  app.get('/img', render);
+  app.get('/img', generate);
 };
