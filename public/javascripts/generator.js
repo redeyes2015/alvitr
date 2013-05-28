@@ -1,4 +1,5 @@
 (function(window) {
+  var $ = window.jQuery;
   $.fn.serializeObject = function() {
       var o = {};
       var a = this.serializeArray();
@@ -18,8 +19,9 @@
     init: function() {
       $('form').change(function() {
         var params = $(this).serializeObject();
-        //console.log(params);
-        $('#previewImage').attr('src', '/img?' + $.param({q: JSON.stringify(params), _: $.now}));
+		renderProfile(params).then(function(canvas){
+			$('#preview').empty().append(canvas);
+		});
       }).
       submit(function(evt) {
         evt.preventDefault();
